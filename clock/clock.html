@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Pure CSS3 Clock</title>
+	<style>
+		.clock {
+			width: 200px;
+			height: 200px;
+			border: 5px solid #000;
+			border-radius: 50%;
+			background-color: #FFF;
+			margin: 0 auto;
+			-webkit-box-shadow: 0 0 15px #000;
+			   -moz-box-shadow: 0 0 15px #000;
+			   		box-shadow: 0 0 15px #000;
+			position: relative;
+		}
+		.dot {
+			width: 10px;
+			height: 10px;
+			border-radius: 10px 10px;
+			background-color: black;
+			position: absolute;
+			top: 91px;
+			left: 99px;
+			z-index: 100;
+		}
+		.hand {
+			position: absolute;
+			width: 4px;
+			margin-left: 100px;
+			background-color: grey;
+			
+			-webkit-animation: rotate 1s linear 0s infinite;
+			   -moz-animation: rotate 1s linear 0s infinite;
+					animation: rotate 1s linear 0s infinite;
+			
+			-webkit-transform-origin: bottom;
+			   -moz-transform-origin: bottom;
+					transform-origin: bottom;
+		}
+		.second {
+			height: 90px;
+			width: 3px;
+			margin-top: 5px;
+			margin-left: 104px;
+
+			-webkit-animation-duration: 60s;
+			   -moz-animation-duration: 60s;
+					animation-duration: 60s;
+		}
+		.minute {
+			height: 70px;
+			margin-top: 25px;
+			width: 5px;
+			
+			-webkit-animation-duration: 3600s;
+			   -moz-animation-duration: 3600s;
+					animation-duration: 3600s;
+		}
+		.hour {
+			height: 50px;
+			margin-top: 45px;
+			width: 8px;
+			
+			-webkit-animation-duration: 216000s;
+			   -moz-animation-duration: 216000s;
+					animation-duration: 216000s;
+		}
+		@-moz-keyframes rotate {
+			from { -moz-transform: rotate(0deg); }
+			to { -moz-transform: rotate(360deg); }
+		}
+		@-webkit-keyframes rotate {
+			from { -webkit-transform: rotate(0deg); }
+			to { -webkit-transform: rotate(360deg); }
+		}
+		@keyframes rotate {
+			from { transform: rotate(0deg); }
+			to { transform: rotate(360deg); }
+		}
+	</style>
+	
+	<script>
+		// CSS3 prefix detect
+		var CSS3 = (function() {
+			var el = document.createElement('span'),
+				prop = 'Animation',
+				prefixes = 'Webkit Moz O ms'.split(' ');
+			// Check for CSS3 animation support without prefix
+			if (el.style.animation !== undefined) {
+				return {
+					css: '',
+					js : ''
+				};
+			}
+			// Check for prefixes
+			for (var i = 0; i < prefixes.length; i += 1) {
+				if (el.style[prefixes[i]+prop] !== undefined) {
+					return {
+						js: prefixes[i],
+						css: '-' + prefixes[i].toLowerCase() + '-'
+					};
+				}
+			}
+		})();
+
+		// Hand object to denote each hand of a clock
+		var Hand = function(name, start) {
+			this.name = name;
+			this.start = start;
+		};
+		
+		// Template for CSS keyframe animation
+		Hand.prototype.template = 
+			'@PREFIXkeyframes rotate-HAND { '
+			+ 'from { PREFIXtransform: rotate(FROMdeg); } '
+			+ 'to   { PREFIXtransform: rotate(TOdeg); } } ';
+
+		// @return the CSS rule to insert into the document
+		// after calculating the from and to angles
+		Hand.prototype.getCSSRule = function() {
+			return this.template
+						.replace(/PREFIX/g, CSS3.css)
+						.replace(/HAND/, this.name)
+						.replace(/FROM/, this.start)
+						.replace(/TO/, this.start + 360);
+		};
+		
+		function initHands() {
+			var now = new Date(),
+				elements = document.getElementsByClassName('hand'),
+				hands = [
+					new Hand('second', now.getSeconds() * 6),
+					new Hand('minute', now.getMinutes() * 6),
+					new Hand('hour', ((now.getHours() % 12) * 30) + (Math.floor(now.getMinutes()) / 2))
+				];
+
+			hands.forEach(function(hand, index) {
+				document.styleSheets[0].insertRule(hand.getCSSRule(), document.styleSheets[0].cssRules.length);
+				elements[index].style[CSS3.js + 'AnimationName'] = 'rotate-'+hand.name;
+			});
+		}
+		
+		window.addEventListener("DOMContentLoaded", initHands);
+	</script>
+</head>
+<body>
+	<div class="clock">
+		<div class="dot"></div>
+		<div class="second hand"></div>
+		<div class="minute hand"></div>
+		<div class="hour hand"></div>
+	</div>
+</body>
+</html>
+
